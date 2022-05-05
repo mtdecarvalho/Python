@@ -1,0 +1,18 @@
+Primeiro, é necessário entrar no venv do projeto.
+cd C:\Users\Matheus\Documents\dev\python\.virtualenvs\dev_django\
+.\Scripts\activate
+
+Depois, dentro da pasta do PROJETO deve-se iniciar a criação do ambiente.
+
+django-admin startproject <nome>
+
+Isto criará a página do projeto. Agora para criarmos um app:
+
+django-admin startapp core
+
+CASO ESTEJA USANDO PYCHARM, É NECESSÁRIO CONFIGURAÇÃO ADICIONAL:
+Em File > Settings > Buscar Interpreter > Selecionar o Interpretador da venv
+Depois, em Run/Debug Configurations do manage.py, é necessário colocar o parametro runserver.
+
+Parar criar tabelas padrões do Django:
+python manage.py migrate
