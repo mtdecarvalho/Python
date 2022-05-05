@@ -1,4 +1,4 @@
-﻿# Python-Estudo
+﻿# Python
 
 
 Repositório simples para o armazenamento de projetos de Python que fiz para meu estudo sobre a linguagem.
