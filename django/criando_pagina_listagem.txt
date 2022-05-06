@@ -1,0 +1,124 @@
+Primeiro de tudo, criamos a pasta templates, e dentro dela criamos um arquivo html genérico chamado 'agenda.html'.
+Agora, para renderizarmos esse html, precisamos ir em views.py e adicionar a função:
+
+def lista_eventos(request):
+    return render(request, 'agenda.html')
+
+Que será responsável por carregar o arquivo. Precisamos também registrar essa url, então vamos em urls.py e adicionamos a seguinte linha dentro de urlpatterns:
+
+    path('agenda/', views.lista_eventos)
+
+Que redireciona o request de agenda/ para a função criada acima. Feito isso, precisamos também registrar onde estão os templates do nosso projeto, então vamos para settings.py, procuramos TEMPLATES, e dentro de TEMPLATES procuramos a lista DIRS. Dentro dela adicionamos a entrada:
+
+os.path.join(BASE_DIR, 'templates')
+
+que fará o join do diretório base do projeto com templates. Feito tudo isso, podemos finalmente carregar o manage.py e carregar nossa página HTML com êxito.
+Para listar todos os eventos que temos cadastrados, vamos em views.py e adicionamos as seguinte linhas na função lista_eventos, antes do return:
+
+def lista_eventos(request):
+    evento = Evento.objects.get(id=1)
+    dados = {'evento':evento}
+    return render(request, 'agenda.html', dados)
+
+Depois, vamos em agenda.html e adicionamos o seguinte:
+
+    <b>{{ evento.titulo }} - {{ evento.data_evento }}</b>
+
+Para listarmos todos os registros, alteramos a função de novo:
+
+def lista_eventos(request):
+    evento = Evento.objects.all()
+    dados = {'eventos':evento}
+    return render(request, 'agenda.html', dados)
+
+E alteramos o html de novo, isnerindo:
+
+    {% for evento in eventos %}
+        <b>{{ evento.titulo }} - {{ evento.data_evento }}</b>
+    {% endfor %}
+
+Como pode ser notado, usando {} conseguimos usar atributos do python e usando {% %} conseguimos usar comandos do python.
+Para deixar mais bonito, inserimos esses dados numa lista, ficando com o HTML assim:
+
+    <ul>
+        {% for evento in eventos %}
+            <li>{{ evento.titulo }} - {{ evento.data_evento }}</li>
+        {% endfor %}
+    </ul>
+
+Podemos alterar o formato de como a data é mostrada para o formato brasileiro e o horário também, indo em models.py e criando a função:
+
+    def get_data_evento(self):
+        return self.data_evento.strftime('%d/%m/%Y %H:%M Hrs')
+
+E trocando no HTML {{ evento.data_evento }} para {{ evento.get_data_evento }}.
+
+    <ul>
+        {% for evento in eventos %}
+            <li>{{ evento.titulo }} - {{ evento.get_data_evento }}</li>
+        {% endfor %}
+    </ul>
+
+Podemos listar também apenas os registros do usuário. Para isso, vamos em view.py e modificamos a função de novo:
+
+def lista_eventos(request):
+    usuario = request.user
+    evento = Evento.objects.filter(usuario=usuario)
+    dados = {'eventos':evento}
+    return render(request, 'agenda.html', dados)
+
+Mas deixamos isso para depois e retornamos a função para como ela estava antes.
+
+Podemos também fazer reaproveitamento de código em HTML. Para exemplo criamos os arquivos model-page.html, model-footer.html e model-header.html. 
+Resultado:
+
+model-page.html:
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include "model-header.html" %}
+</head>
+<body>
+    {% block content %} {% endblock %}
+    {% include "model-footer.html" %}
+</body>
+</html>
+
+model-header.html:
+
+    <meta charset="UTF-8">
+    <title>Agenda</title>
+
+model-footer.html:
+
+<p>Desenvolvido por Matheus de Carvalho</p>
+
+agenda.html:
+
+{% extendes "model-page.html" %}
+
+{% block content %}
+    <h2>Agendamentos</h2>
+
+    <ul style="font-size: 18px">
+        {% for evento in eventos %}
+            <li>{{ evento.titulo }} - {{ evento.get_data_evento }}</li>
+        {% endfor %}
+    </ul>
+{% endblock %}
+
+Fazendo isso, estou dizendo que todo o conteúdo de agenda.html faz parte do bloco content.
+
+Existem duas formas de fazer o redirecionamento de páginas.
+
+Método um:
+Em urls.py, dentro de urlpatterns, adicionamos path('', views.index) e criamos o index em views.py, pela função:
+
+def index(request):
+    return redirect('/agenda/')
+
+Isso sempre redirecionará para a url agenda.
+
+Método dois:
+Em urls.py, dentro de urlpatterns, adicionamos path('', RedirectView.as_view(url='/agenda/'))
