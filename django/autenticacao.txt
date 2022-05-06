@@ -1,0 +1,114 @@
+O Django já possui um pacote de autenticação em django.contrib.auth, que cria as tabelas de usuários e permissões, onde fica mais fácil o controle de autenticações e de permissões. Para utilizar essa autenticação padrão do Django é necessário que o pacote esteja dentro dos apps intalados no settings do projeto (isso já vem pronto por default.).
+
+A função authenticate é responsável por autenticar o usuário.
+
+user = authenticate(username=username, password=password)
+
+A função login é responsável pela criação de uma sessão para o usuário autenticado.
+
+login(request, user)
+
+A função logout é responsável por limpar os dados do usuário da sessão.
+
+user = logout(request)
+
+A função login_required é responsável por autenticar o usuário. É um decorator que é utilizado em todas as funções/views que precisam de um usuário logado/autenticado para serem acessadas.
+
+@login_required(login_url='/login/')
+def lista_eventos(request):
+
+Suponhamos que eu queira fazer com que nossa url agenda/ possa ser acessada apenas por um usuário logado. Pra fazer isso, vamos ao views.py e adicionamos o decorator login_required na função lista_eventos
+
+@login_required()
+def lista_eventos(request):
+    evento = Evento.objects.all()
+    dados = {'eventos':evento}
+    return render(request, 'agenda.html', dados)
+
+Agora, caso a url agenda/ seja acessada sem um usuário autenticado, será retornado um erro. Para fazermos um redirecionamento para a tela de login, vamos em urls.py e adicionamos a linha a seguir em urlpatterns:
+
+path('login/', views.login_user),
+
+Depois voltamos para views.py e criamos essa função:
+
+def login_user(request):
+    return render(request, 'login.html')
+
+E também alteramos o decorator para que seja feito o redirecionamento para a url login/ no caso de não encontrar um usuário autenticado:
+
+@login_required(login_url='/login/')
+def lista_eventos(request):
+
+Feito isso, fazemos o arquivo login.html, com um form que contêm username e password, e então voltamos para urls.py e adicionamos a seguinte linha em urlpatterns:
+
+    path('login/submit', views.submit_login)
+
+Agora, vamos para views.py fazer a função submit_login:
+
+def submit_login(request):
+    if request.POST:
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        usuario = authenticate(username=username,password=password)
+        if usuario is not None:
+            login(request, usuario)
+            return redirect('/')
+    else:
+        return redirect('/')
+
+Nesta função recolhemos o username e password, fazemos a autenticação do usuário e então logamos o mesmo e o redirecionamos de volta para o índice.
+Por questão de segurança, precisamos adicionar algo a mais no fim de uma linha em login.html:
+
+    <form action="submit" method="POST">{% csrf_token %}
+
+Usamos esse csrf_token para gerar um token de segurança desse certificado. Feito isso conseguimos agora ser autenticados e logar. Podemos também editar a função lista_eventos para mostrar apenas os registros vinculados ao usuário:
+
+@login_required(login_url='/login/')
+def lista_eventos(request):
+    usuario = request.user
+    evento = Evento.objects.filter(usuario=usuario)
+    dados = {'eventos': evento}
+    return render(request, 'agenda.html', dados)
+
+Porém, só conseguimos fazer o logout pelo admin/. Para fazermos o logout, vamos no model-header e o modificamos assim:
+
+    <meta charset="UTF-8">
+    <title>Agenda</title>
+    <div align="right">
+        <a href="/logout">Logout</a>
+    </div>
+    <h1>Agenda</h1>
+
+Agora vamos em urls.py novamente e adicionamos a segunte linha em urlpatterns:
+
+    path('logout/', views.logout_user)
+
+E vamos novamente em views.py para criarmos essa função:
+
+def logout_user(request):
+    logout(request)
+    return redirect('/')
+
+Porém, do jeito que está, não estamos controlando o caso de nada ser digitado nos campos de usuário e password nem do caso de nada ser digitado. Para corrigirmos isso, alteramos a função submit_login da forma seguinte:
+
+def submit_login(request):
+    if request.POST:
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        usuario = authenticate(username=username,password=password)
+        if usuario is not None:
+            login(request, usuario)
+            return redirect('/')
+        else:
+            messages.error(request, "Usuário ou senha inválidos!")
+    return redirect('/')
+
+E também vamos na página login.html e adicionamos o seguinte, logo após o </form>
+
+    {% for message in messages %}
+    <div align="center">
+        <strong>Erro</strong> {{ message }}
+    </div>
+    {% endfor %}
+
+Isso imprimirá uma mensagem de erro na tela. Agora podemos finalmente tirar o staff dos usuários que não são admin. Dessa forma, os usuários não conseguirão acessar o admin/, mas conseguem acessar a agenda/ e ver todos os seus registros.
