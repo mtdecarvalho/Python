@@ -1,4 +1,5 @@
 Primeiro, é necessário entrar no venv do projeto.
+
 cd C:\Users\Matheus\Documents\dev\python\.virtualenvs\dev_django\
 .\Scripts\activate
 
@@ -15,4 +16,14 @@ Em File > Settings > Buscar Interpreter > Selecionar o Interpretador da venv
 Depois, em Run/Debug Configurations do manage.py, é necessário colocar o parametro runserver.
 
 Parar criar tabelas padrões do Django:
+
 python manage.py migrate
+
+Para criar um superusuário:
+
+python manage.py createsuperuser --username admin
+Email: <insira algum email>
+Password: <insira senha. A senha não pode ser simples.>
+
+Feito isso, agora podemos criar usuários pela interface de admin do django, controlando permissões e etc. 
+Também podemos criar um grupo, chamado VISUALIZACAO. Adicionamos permissões de view para ele. Então, criamos um usuário novo e adicionamos ele ao grupo de VISUALIZACAO, fazendo com que ele receba todas as permissões do grupo.

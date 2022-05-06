@@ -1,0 +1,77 @@
+Migração de dados no Django:
+
+-> Migrando classe Evento
+
+class Evento(models.Model):
+    titulo = models.CharField(max_length=100)
+    descricao = models.TextField(blank=True, null=True)
+    data_evento = models.DateTimeField()
+    data_criacao = models.DateTimeField(auto_now=True)
+
+Para migração de dados, é necessário que tenha classes criadas. Com as classes criadas, é utilizado então o comando migrate para a migração. O comando makemigrations é usado para a criação de um arquivo de migração, sem a necessidade de você migrar "às cegas", e o comando sqlmigrate, que ao invés de aplicar a migração, é gerado todo comando para que essa migração possa ser efetuada manualmente no banco de dados.
+Caso nenhuma primary key seja informada em models, será criado automaticamente um id como primary key.
+
+python manage.py makemigrations core
+python manage.py sqlmigrate core 0001
+
+Ao invés de utilizar os nomes de tabelas gerados automaticamente pelo Django, pode-se criar a classe Meta dentro da classe que você deseja migrar pro BD, e dentro dela definir o nome. db_table define o nome da tabela.
+Ex:
+    class Meta:
+        db_table = 'evento'
+
+Se você já gerou o arquivo de migração mas quer agora mudar o nome da tabela, basta apagar o arquivo 0001_initial.py e repetir os comandos citados acima:
+
+python manage.py makemigrations core
+python manage.py sqlmigrate core 0001
+
+Feito isso, podemos usar o comando migrate para migrar os dados para o BD.
+
+python manage.py migrate core 0001
+
+Agora, para registramos isso, vamos no arquivo admin.py e adicionamos a linha:
+
+admin.site.register(Evento)
+
+Que irá permitir a manipulação da tabela pelo site do admin. Por padrão, na listagem dos registros da tabela Evento, se __str__ não estiver definido na classe Evento, será retornado um nome estranho como Evento.object 1. Para mudar isso, podemos ir na classe Evento e adicionar a seguinte função: 
+
+    def __str__(self):
+        return self.titulo
+
+Isto fará com que apareça corretamente o título do evento. Para mudarmos a listagem, que por padrão só mostrará o Título, podemos ir em admin.py e adicionar a classe:
+
+class EventoAdmin(admin.ModelAdmin):
+    list_display = ('titulo', 'data_evento', 'data_criacao')
+
+e vincular ela com a classe Evento:
+
+admin.site.register(Evento, EventoAdmin)
+
+Com isso, será mostrado título, data do evento e data de criação do evento.
+
+É possível também vincular uma foreign key com nossa tabela. Fazemos isso indo na classe Evento e adicionando a linha:
+
+usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+
+Para aplicar as alterações da classe no BD, basta rodar o comando novamente:
+
+python manage.py makemigrations core
+
+Que irá identificar as alterações. No caso, adicionamos uma nova coluna que é NOT NULL. Neste caso, podemos escolher duas opções, a 1 que irá colocar um valor padrão para todos os registros já existentes e a 2 que irá sair do processo para que você faça isso manualmente. No caso, escolhemos a 1, então logo após precisamos escolher o valor padrão para colocar em todos. Colocamos o valor 1, que referencia admin. Feito isso, rodamos o comando sqlmigrate para conferir o que mudou:
+
+python manage.py sqlmigrate core 0002
+
+Para concluir as alterações:
+
+python manage.py migrate core 0002
+
+Agora é possível alterar os usuários que terão acesso aos eventos. Podemos também adicionar um filtro na listagem da tabela evento, adicionando a seguinte linha na tabela admin.py:
+
+list_filter = ('usuario',)
+
+Onde o parâmetro passado se refere ao nome da tabela que será usada para o filtro. No caso, é utilizado os usuários para a filtragem. Podemos adicionar mais de um valor para filtrar também:
+
+list_filter = ('usuario', 'data_evento',)
+
+Que permitirá o filtro tanto por usuário como pela data_evento.
+
+
