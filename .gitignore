@@ -2,3 +2,5 @@ projeto_teste/.venv
 .virtualenvs/
 __pycache__
 usuario_senha.txt
+*.pyc
+.idea

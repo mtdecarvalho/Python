@@ -1,0 +1,29 @@
+Primeiramente, precisamos criar uma tela nova para a inserção dos dados. Para isso vamos no urls.py e adicionamos dentro de urlpatterns:
+
+    path('agenda/evento', views.evento),
+
+Depois vamos em views.py e definimos essa função.
+
+@login_required(login_url='/login/')
+def evento(request):
+    return render(request, 'evento.html')
+
+Depois vamos em templates e criamos o evento.html. Depos voltamos em agenda.html para criarmos um botão que redirecionará para a página de criação de evento. Com a página criada, voltamos em urls.py e adicionamos o redirecionamento do botão submit
+
+    path('agenda/evento/submit/', views.submit_evento),
+
+E então definimos a função submit_evento:
+
+@login_required(login_url='/login/')
+def submit_evento(request):
+    if request.POST:
+        titulo = request.POST.get("titulo")
+        data_evento = request.POST.get("data_evento")
+        descricao = request.POST.get("descricao")
+        usuario = request.user
+        Evento.objects.create(titulo=titulo,
+                              data_evento=data_evento,
+                              descricao=descricao,
+                              usuario=usuario)
+    return redirect('/')
+
