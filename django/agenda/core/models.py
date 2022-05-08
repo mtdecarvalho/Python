@@ -10,6 +10,7 @@ class Evento(models.Model):
     data_evento = models.DateTimeField(verbose_name='Data do Evento')
     data_criacao = models.DateTimeField(auto_now=True)
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    local = models.CharField(max_length=100, blank=True, null=True)
 
     # auto_now irá inserir automaticamente a datetime atual sempre que um registro for criado
     class Meta:

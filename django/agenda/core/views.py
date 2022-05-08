@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, HttpResponse
 from core.models import Evento
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
@@ -38,11 +38,13 @@ def submit_evento(request):
         titulo = request.POST.get("titulo")
         data_evento = request.POST.get("data_evento")
         descricao = request.POST.get("descricao")
+        local = request.POST.get("local")
         usuario = request.user
         Evento.objects.create(titulo=titulo,
                               data_evento=data_evento,
                               descricao=descricao,
-                              usuario=usuario)
+                              usuario=usuario,
+                              local=local)
     return redirect('/')
 
 
@@ -57,3 +59,7 @@ def lista_eventos(request):
 @login_required(login_url='/login/')
 def evento(request):
     return render(request, 'evento.html')
+
+
+def get_local_evento(request, titulo_evento):
+    return HttpResponse(f'Local do evento {titulo_evento}: {Evento.objects.get(titulo=titulo_evento).local}')
