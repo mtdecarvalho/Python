@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 # Create your models here.
@@ -28,6 +28,12 @@ class Evento(models.Model):
 
     def get_evento_atrasado(self):
         if self.data_evento < datetime.now():
+            return True
+        else:
+            return False
+
+    def get_evento_a_comecar(self):
+        if self.data_evento < datetime.now() + timedelta(hours=1):
             return True
         else:
             return False

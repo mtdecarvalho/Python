@@ -91,11 +91,24 @@ def lista_eventos(request):
 
 
 @login_required(login_url='/login/')
+def lista_historico(request):
+    usuario = request.user
+    data_atual = datetime.now()
+    evento = Evento.objects.filter(usuario=usuario,
+                                   data_evento__lt=data_atual)
+    dados = {'eventos': evento}
+    return render(request, 'agenda.html', dados)
+
+
+@login_required(login_url='/login/')
 def evento(request):
     id_evento = request.GET.get('id')
     dados = {}
     if id_evento:
-        dados['evento'] = Evento.objects.get(id=id_evento)
+        try:
+            dados['evento'] = Evento.objects.get(id=id_evento)
+        except Exception:
+            raise Http404()
     return render(request, 'evento.html', dados)
 
 
@@ -104,6 +117,9 @@ def get_local_evento(request, titulo_evento):
 
 
 def json_lista_evento(request, id_usuario):
-    usuario = User.objects.get(id=id_usuario)
-    evento = Evento.objects.filter(usuario=usuario).values('id', 'titulo')
+    try:
+        usuario = User.objects.get(id=id_usuario)
+        evento = Evento.objects.filter(usuario=usuario).values('id', 'titulo')
+    except Exception:
+        raise Http404()
     return JsonResponse(list(evento), safe=False)
