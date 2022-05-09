@@ -1,0 +1,74 @@
+Primeiro, vamos para o urls.py e adicionamos um novo path:
+
+    path('agenda/evento/delete/<int:id_evento>', views.delete_evento),
+
+Vamos em views e criamos essa view:
+
+@login_required(login_url='/login/')
+def delete_evento(request, id_evento):
+    Evento.objects.filter(id=id_evento).delete()
+    return redirect('/')
+
+Porém, do jeito que está acontece uma falha em que é possível excluir eventos que estejam cadastrados em outros usuários. Para prevenir isso, criamos uma validação:
+
+@login_required(login_url='/login/')
+def delete_evento(request, id_evento):
+    usuario = request.user
+    evento = Evento.objects.get(id=id_evento)
+    if (usuario == evento.usuario):
+        evento.delete()
+    return redirect('/')
+
+Feito isso, cada usuário conseguirá excluir apenas eventos cadastrados para eles. Agora criamos o botão para excluir em agenda.html. Depois, vamos fazer a edição, para isso vamos reaproveitar a view de evento para edição. Vamos em views.py e:
+
+                ( <a href="evento/?id={{ evento.id }}">Editar</a>
+
+Usando o interrogação conseguimos passar ele como parâmetro para o get. Então voltamos na função evento e a alteramos:
+
+@login_required(login_url='/login/')
+def evento(request):
+    id_evento = request.GET.get('id')
+    dados = {}
+    if id_evento:
+        dados['evento'] = Evento.objects.get(id=id_evento)
+    return render(request, 'evento.html', dados)
+
+Depois, vamos em evento.html para setar o values. Porém teremos um problema para mostrar a data e hora, então precisamos alterar a forma como a obtemos, criando uma nova função em models.py:
+
+    def get_data_input_evento(self):
+        return self.data_evento.strftime('%Y-%m-%dT%H:%M')
+
+Feito isso, agora ela será impressa corretamente. Agora precisamos fazer com que as alterações sejam entendidas como alterações e não uma nova entrada. Para isso criamos um novo input escondido em evento.html:
+
+    <input type="number" name="id_evento" value="{{ evento.id }}" hidden>
+
+E então vamos na função submit_evento para conseguirmos pegar esse id e alterar-lo. Existem duas formas, uma está comentada:
+
+@login_required(login_url='/login/')
+def submit_evento(request):
+    if request.POST:
+        titulo = request.POST.get("titulo")
+        data_evento = request.POST.get("data_evento")
+        descricao = request.POST.get("descricao")
+        local = request.POST.get("local")
+        usuario = request.user
+        id_evento = request.POST.get("id_evento")
+        if id_evento:
+            evento = Evento.objects.get(id=id_evento)
+            if evento.usuario == usuario:
+                evento.titulo = titulo
+                evento.descricao = descricao
+                evento.data_evento = data_evento
+                evento.save()
+            # Evento.objects.filter(id=id_evento).update(titulo=titulo,
+            #                                            data_evento=data_evento,
+            #                                            descricao=descricao,
+            #                                            local=local)
+        else:
+            Evento.objects.create(titulo=titulo,
+                                  data_evento=data_evento,
+                                  descricao=descricao,
+                                  usuario=usuario,
+                                  local=local)
+    return redirect('/')
+
