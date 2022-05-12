@@ -1,0 +1,10 @@
+Ao invés de pegarmos os valores um de cada vez pela URI, existe uma alternativa mais eficiente para recebermos informações que não é pela URI, que chamamos de body, e conseguimos apenas pelo método POST. Podemos fazer isso pelo Postman, informando o endereço e depois indo em Body > Raw e trocando de Text para Json e então inserindo o json que queremos passar. Importamos a biblioteca json para podermos receber esse dado como json ao invés de string.
+
+@app.route('/soma', methods=['POST', 'GET'])
+def soma():
+    if request.method == 'POST':
+        dados = json.loads(request.data)
+        total = sum(dados['valores'])
+    elif request.method == 'GET':
+        total = 10 + 10
+    return jsonify({'soma': total})
