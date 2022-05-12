@@ -8,3 +8,6 @@ def soma():
     elif request.method == 'GET':
         total = 10 + 10
     return jsonify({'soma': total})
+
+Podemos também usar a biblioteca responses para passarmos os métodos POST, PUT, etc..
+
