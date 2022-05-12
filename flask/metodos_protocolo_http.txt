@@ -1,0 +1,4 @@
+GET - Método que solicita algum recurso ou objeto do servidor por meio da URI;
+POST - Método usado para envio de arquivo/dados ou formulário HTML para o servidor;
+PUT - Aceitar criar ou modificar um objeto do servidor;
+DELETE - Informa por meio da URI o objeto a ser deletado.
