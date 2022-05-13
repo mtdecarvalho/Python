@@ -25,11 +25,10 @@ api = Api(app)
 def verificacao(login, senha):
     if not (login, senha):
         return False
-    return Usuarios.query.filter_by(login=login, senha=senha).first()
+    return Usuarios.query.filter_by(login=login, senha=senha, ativo='1').first()
 
 
 class Pessoa(Resource):
-    @auth.login_required
     def get(self, nome):
         try:
             pessoa = Pessoas.query.filter_by(nome=nome).first()
@@ -90,6 +89,7 @@ class ListaPessoas(Resource):
                     for i in pessoas]
         return response
 
+    @auth.login_required
     def post(self):
         dados = request.json
         pessoa = Pessoas(nome=dados['nome'], idade=dados['idade'])
@@ -133,6 +133,7 @@ class Atividade(Resource):
             }
         return response
 
+    @auth.login_required
     def put(self, id):
         try:
             dados = request.json
@@ -159,6 +160,7 @@ class ListaAtividades(Resource):
         response = [{'id': i.id, 'nome': i.nome, 'pessoa': i.pessoa.nome, 'status': i.status} for i in atividades]
         return response
 
+    @auth.login_required
     def post(self):
         dados = request.json
         pessoa = Pessoas.query.filter_by(nome=dados['pessoa']).first()

@@ -26,13 +26,13 @@ def excluir_pessoa():
 
 
 def inserir_usuario(login, senha):
-    usuario = Usuarios(login=login, senha=senha)
+    usuario = Usuarios(login=login, senha=senha, ativo='0')
     usuario.save()
 
 
 def consulta_todos_usuarios():
     usuarios = Usuarios.query.all()
-    print(usuarios)
+    print([[usuario.login, usuario.ativo] for usuario in usuarios])
 
 
 if __name__ == '__main__':
