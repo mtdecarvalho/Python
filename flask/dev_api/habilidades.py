@@ -2,7 +2,7 @@ import json
 from flask import request
 from flask_restful import Resource
 
-lista_habilidades = ['Python', 'Java', 'Flask', 'PHP']
+lista_habilidades = ['Python', 'Java', 'Flask', 'PHP', 'Django', 'C++']
 
 
 class Lista_Habilidades(Resource):

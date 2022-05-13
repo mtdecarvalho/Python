@@ -1,7 +1,7 @@
 from flask import Flask, request
 from flask_restful import Resource, Api
 import json
-from habilidades import Lista_Habilidades, Habilidades
+from habilidades import Lista_Habilidades, Habilidades, lista_habilidades
 
 app = Flask(__name__)
 api = Api(app)
@@ -34,23 +34,46 @@ class Desenvolvedor(Resource):
         return response
 
     def put(self, id):
-        dados = json.loads(request.data)
-        desenvolvedores[id] = dados
-        return dados
+        try:
+            dados = json.loads(request.data)
+            if all(item in lista_habilidades for item in dados['habilidades']):
+                desenvolvedores[id] = dados
+                response = dados
+            else:
+                response = {'status': 'erro', 'mensagem': 'Uma ou mais habilidades inseridas não são validas.'}
+        except IndexError as e:
+            mensagem = 'Desenvolvedor de ID {} não existe'.format(id)
+            response = {'status': 'erro', 'mensagem': mensagem}
+        except Exception as e:
+            mensagem = 'Erro desconhecido, procure o administrador da API'
+            response = {'status': 'erro', 'mensagem': mensagem}
+        return response
 
     def delete(self, id):
-        desenvolvedores.pop(id)
-        return {'status': 'sucesso', 'mensagem': 'registro excluido'}
+        try:
+            desenvolvedores.pop(id)
+            response = {'status': 'sucesso', 'mensagem': 'registro excluido'}
+        except IndexError as e:
+            mensagem = 'Desenvolvedor de ID {} não existe'.format(id)
+            response = {'status': 'erro', 'mensagem': mensagem}
+        except Exception as e:
+            mensagem = 'Erro desconhecido, procure o administrador da API'
+            response = {'status': 'erro', 'mensagem': mensagem}
+        return response
 
 
 # lista todos os desenvolvedores e permite registrar um novo desenvolvedor
 class Lista_Desenvolvedores(Resource):
     def post(self):
         dados = json.loads(request.data)
-        posicao = len(desenvolvedores)
-        dados['id'] = posicao
-        desenvolvedores.append(dados)
-        return desenvolvedores[posicao]
+        if all(item in lista_habilidades for item in dados['habilidades']):
+            posicao = len(desenvolvedores)
+            dados['id'] = posicao
+            desenvolvedores.append(dados)
+            response = desenvolvedores[posicao]
+        else:
+            response = {'status': 'erro', 'mensagem': 'Uma ou mais habilidades inseridas não são validas.'}
+        return response
 
     def get(self):
         return desenvolvedores
