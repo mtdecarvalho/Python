@@ -26,10 +26,6 @@ def excluir_pessoa():
 
 
 if __name__ == '__main__':
-    # inserir_pessoas()
-    # alterar_pessoa()
-    consulta_pessoas()
-    excluir_pessoa()
     consulta_pessoas()
 
 
