@@ -15,7 +15,7 @@ class Pessoa(Resource):
                 'idade': pessoa.idade,
                 'id': pessoa.id
             }
-        except AttributeError as e:
+        except AttributeError:
             response = {
                 'status': 'erro',
                 'mensagem': 'Pessoa não encontrada'
@@ -23,24 +23,36 @@ class Pessoa(Resource):
         return response
 
     def put(self, nome):
-        pessoa = Pessoas.query.filter_by(nome=nome).first()
-        dados = request.json
-        if 'nome' in dados:
-            pessoa.nome = dados['nome']
-        if 'idade' in dados:
-            pessoa.idade = dados['idade']
-        pessoa.save()
-        response = {
-            'id': pessoa.id,
-            'nome': pessoa.nome,
-            'idade': pessoa.idade
-        }
+        try:
+            pessoa = Pessoas.query.filter_by(nome=nome).first()
+            dados = request.json
+            if 'nome' in dados:
+                pessoa.nome = dados['nome']
+            if 'idade' in dados:
+                pessoa.idade = dados['idade']
+            pessoa.save()
+            response = {
+                'id': pessoa.id,
+                'nome': pessoa.nome,
+                'idade': pessoa.idade
+            }
+        except AttributeError:
+            response = {
+                'status': 'erro',
+                'mensagem': 'Pessoa não encontrada'
+            }
         return response
 
     def delete(self, nome):
-        pessoa = Pessoas.query.filter_by(nome=nome).first()
-        response = {'status': 'sucesso', 'mensagem': 'Pessoa {} excluida com sucesso'.format(pessoa.nome)}
-        pessoa.delete()
+        try:
+            pessoa = Pessoas.query.filter_by(nome=nome).first()
+            response = {'status': 'sucesso', 'mensagem': 'Pessoa {} excluida com sucesso'.format(pessoa.nome)}
+            pessoa.delete()
+        except AttributeError:
+            response = {
+                'status': 'erro',
+                'mensagem': 'Pessoa não encontrada'
+            }
         return response
 
 
@@ -55,7 +67,7 @@ class ListaPessoas(Resource):
 
     def post(self):
         dados = request.json
-        pessoa = Pessoas(nome=dados['nome'],idade=dados['idade'])
+        pessoa = Pessoas(nome=dados['nome'], idade=dados['idade'])
         pessoa.save()
         response = {
             'id': pessoa.id,
@@ -65,27 +77,87 @@ class ListaPessoas(Resource):
         return response
 
 
+class AtividadesDeUmaPessoa(Resource):
+    def get(self, nome_pessoa):
+        pessoa = Pessoas.query.filter_by(nome=nome_pessoa).first()
+        if pessoa is not None:
+            atividades = Atividades.query.filter_by(pessoa=pessoa)
+            response = [{'id': i.id, 'nome': i.nome, 'pessoa': i.pessoa.nome, 'status': i.status} for i in atividades]
+        else:
+            response = {
+                'status': 'erro',
+                'mensagem': 'Pessoa não encontrada'
+            }
+        return response
+
+
+class Atividade(Resource):
+    def get(self, id):
+        try:
+            atividade = Atividades.query.filter_by(id=id).first()
+            response = {
+                'pessoa': atividade.pessoa.nome,
+                'nome': atividade.nome,
+                'status': atividade.status,
+                'id': atividade.id
+            }
+        except AttributeError:
+            response = {
+                'status': 'erro',
+                'mensagem': 'Atividade não encontrada'
+            }
+        return response
+
+    def put(self, id):
+        try:
+            dados = request.json
+            atividade = Atividades.query.filter_by(id=id).first()
+            atividade.status = dados['status']
+            atividade.save()
+            response = {
+                'pessoa': atividade.pessoa.nome,
+                'nome': atividade.nome,
+                'status': atividade.status,
+                'id': atividade.id
+            }
+        except AttributeError:
+            response = {
+                'status': 'erro',
+                'mensagem': 'Atividade não encontrada'
+            }
+        return response
+
+
 class ListaAtividades(Resource):
     def get(self):
         atividades = Atividades.query.all()
-        response = [{'id': i.id, 'nome': i.nome, 'pessoa': i.pessoa.nome} for i in atividades]
+        response = [{'id': i.id, 'nome': i.nome, 'pessoa': i.pessoa.nome, 'status': i.status} for i in atividades]
         return response
 
     def post(self):
         dados = request.json
         pessoa = Pessoas.query.filter_by(nome=dados['pessoa']).first()
-        atividade = Atividades(nome=dados['nome'], pessoa=pessoa)
-        atividade.save()
-        response = {
-            'pessoa': atividade.pessoa.nome,
-            'nome': atividade.nome,
-            'id': atividade.id
-        }
+        if pessoa is not None:
+            atividade = Atividades(nome=dados['nome'], pessoa=pessoa, status=dados['status'])
+            atividade.save()
+            response = {
+                'pessoa': atividade.pessoa.nome,
+                'nome': atividade.nome,
+                'status': atividade.status,
+                'id': atividade.id
+            }
+        else:
+            response = {
+                'status': 'erro',
+                'mensagem': 'Pessoa não encontrada'
+            }
         return response
 
 
 api.add_resource(Pessoa, '/pessoa/<string:nome>/')
 api.add_resource(ListaPessoas, '/pessoa/')
+api.add_resource(AtividadesDeUmaPessoa, '/atividades/<string:nome_pessoa>/')
+api.add_resource(Atividade, '/atividades/<int:id>/')
 api.add_resource(ListaAtividades, '/atividades/')
 
 if __name__ == '__main__':
