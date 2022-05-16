@@ -1,0 +1,40 @@
+models.py
+
+engine = create_engine('sqlite:///atividades.db', convert_unicode=True)
+
+Nesta linha definimos a criação do banco de dados, sendo passado a engine e o nome. Também é passado convert_unicode=True para prevenir problemas com acentuação.
+
+db_session = scoped_session(sessionmaker(autocommit=False,
+                                         binds=engine))
+
+Essa linha define o início da sessão, passando autocommit=False para prevenir commits automáticos e passando a engine feita acima em binds.
+
+Base = declarative_base()
+Base.query = db_session.query_property()
+
+Esse trecho é necessário para que se crie o banco de dados e para que consigamos trabalhar com as sessões, fazendo alterações e consultas, trabalhando com o ORM de fato.
+
+class Pessoas(Base):
+    __tablename__='pessoas'
+    id = Column(Integer, primary_key=True)
+    nome = Column(String(40), index=True)
+    idade = Column(Integer)
+
+    def __repr__(self):
+        return '<Pessoa {}>'.format(self.nome)
+
+Define a criação da tabela pessoas, cujo nome foi definido pelo __tablename__. Define que id, nome e idade são colunas, que id é Integer e o primary key, que nome é uma String com máx de 40 chars e que idade é um Integer. Define também a função __repr__ que será responsável pela impressão dos dados da classe/tabela.
+
+class Atividades(Base):
+    __tablename_='atividades'
+    id = Column(Integer, primary_key=True)
+    nome = Column(String(80))
+    pessoa_id = Column(Integer, ForeignKey('pessoas.id'))
+    pessoa = relationship("Pessoas")
+
+Mesma lógica acima, porém com a FK apontando para pessoas.id e a relationship feita com Pessoas.
+
+def init_db():
+    Base.metadata.create_all(bind=engine)
+
+O create_all cria o banco de dados.

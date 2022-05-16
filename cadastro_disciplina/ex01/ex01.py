@@ -25,7 +25,8 @@ class Disciplina:
                     self.nota1, self.nota2, self.media
                 )
 
-if __name__ == "__main__":
+
+def criar_disciplina():
     codigo = int(input())
     nome = input()
     professor = input()
@@ -35,5 +36,8 @@ if __name__ == "__main__":
     nota1 = float(input())
     nota2 = float(input())
     media = (nota1 + 2.0*nota2)/3.0
-    disciplina = Disciplina(codigo, nome, professor, creditos, ano, semestre, nota1, nota2, media)
+    return Disciplina(codigo, nome, professor, creditos, ano, semestre, nota1, nota2, media)
+
+if __name__ == "__main__":
+    disciplina = criar_disciplina()
     print(disciplina)
